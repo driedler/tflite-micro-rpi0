@@ -305,6 +305,29 @@ TfLiteTensor* MicroInterpreter::output(size_t index) {
   return output_tensors_[index];
 }
 
+TfLiteTensor* MicroInterpreter::tensor(size_t index) {
+  const auto& input_indices = inputs();
+  const int input_length = input_indices.size();
+
+  for(int i = 0; i < input_length; ++i) {
+    if(input_indices[i] == index) {
+      return input(i);
+    }
+  }
+
+  const auto& output_indices = outputs();
+  const int output_length = input_indices.size();
+  for (size_t i = 0; i < output_length; ++i) {
+    if(output_indices[i] == index) {
+      return output(i);
+    }
+  }
+
+  TF_LITE_REPORT_ERROR(error_reporter_,
+                        "Invalid tensor index %d", index);
+  return nullptr;
+}
+
 TfLiteStatus MicroInterpreter::ResetVariableTensors() {
   return graph_.ResetVariableTensors();
 }

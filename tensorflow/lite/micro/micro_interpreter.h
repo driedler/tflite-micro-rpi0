@@ -105,6 +105,11 @@ class MicroInterpreter {
     return nullptr;
   }
 
+  TfLiteTensor* tensor(size_t index);
+  size_t tensors_size() const {
+    return model_->subgraphs()->Get(0)->tensors()->size();
+  }
+
   // Reset all variable tensors to the default value.
   TfLiteStatus ResetVariableTensors();
 
