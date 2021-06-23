@@ -10,7 +10,8 @@ set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem ${ARMCC_ROOT}/lib/gcc/arm-rpi-gnueabihf
 set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem ${ARMCC_ROOT}/lib/gcc/arm-rpi-gnueabihf/6.5.0/include-fixed")
 set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem ${ARMCC_ROOT}/arm-rpi-linux-gnueabihf/include/c++/6.5.0")
 set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem ${ARMCC_ROOT}/arm-rpi-linux-gnueabihf/sysroot/usr/include")
-
+set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem /usr/include/python3.7m")
+#set(ARMCC_FLAGS "${ARMCC_FLAGS} -isystem /usr/include")
 
 set(CMAKE_C_COMPILER ${ARMCC_PREFIX}gcc CACHE INTERNAL "")
 set(CMAKE_CXX_COMPILER ${ARMCC_PREFIX}g++ CACHE INTERNAL "")

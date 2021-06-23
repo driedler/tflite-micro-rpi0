@@ -68,6 +68,8 @@ case $1 in
       -isystem \"\${CROSSTOOL_PYTHON_INCLUDE_PATH}\" \
       -isystem /usr/include\""
     echo "ARMCC_PREFIX=${ARMCC_ROOT}/bin/arm-rpi-linux-gnueabihf-"
+    mkdir -p ${ARMCC_ROOT}/arm-rpi-linux-gnueabihf/sysroot/usr/include/arm-linux-gnueabihf/python3.7m 
+    cp $SCRIPT_DIR/arm-linux-gnueabihf_python3.7m_pyconfig.h ${ARMCC_ROOT}/arm-rpi-linux-gnueabihf/sysroot/usr/include/arm-linux-gnueabihf/python3.7m/pyconfig.h
     ;;
 	*)
 		echo "Usage: download_toolchains.sh [armhf|aarch64|rpi0]" >&2
