@@ -1,0 +1,6 @@
+[
+    {
+        "name": "ARMv6 rpi0",
+        "toolchainFile": "${workspaceFolder}/tensorflow/lite/tools/cmake/rpi0_toolchain.cmake"
+    }
+]
