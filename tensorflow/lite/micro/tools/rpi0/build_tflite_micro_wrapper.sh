@@ -8,5 +8,7 @@ TF_DIR=$ROOT_DIR/tensorflow
 TFLITE_DIR=$TF_DIR/lite 
 TFLM_DIR=$TF_DIR/lite/micro
 
+$SCRIPT_DIR/install_tflite_micro.sh
+
 cmake -DCMAKE_TOOLCHAIN_FILE=$TFLITE_DIR/tools/cmake/rpi0_toolchain.cmake -S $ROOT_DIR -B $ROOT_DIR/build 
 cmake --build $ROOT_DIR/build --target _pywrap_tensorflow_interpreter_wrapper -- -j16
