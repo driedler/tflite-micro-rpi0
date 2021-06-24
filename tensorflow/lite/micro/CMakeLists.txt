@@ -14,17 +14,7 @@
 # limitations under the License.
 
 
-# Builds the Tensorflow Lite runtime.
-#
-# WARNING: This is an experimental that is subject to change.
-# This has only been tested on Windows, Linux and macOS.
-#
-# The following are not currently supported:
-# - iOS
-# - Micro backend
-# - Tests
-# - Many features in experimental
-# - Host Tools (i.e conversion / analysis tools etc.)
+# Builds the Tensorflow Lite runtime
 
 cmake_minimum_required(VERSION 3.16)
 if(NOT CMAKE_BUILD_TYPE)
@@ -83,8 +73,7 @@ message(STATUS "NUMPY_INCLUDE=${NUMPY_INCLUDE}")
 # TFLite library
 add_library(tensorflow-lite-micro)
 
-target_sources(tensorflow-lite-micro
-PRIVATE
+set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLITE_SOURCE_DIR}/c/common.c 
   ${TFLITE_SOURCE_DIR}/core/api/flatbuffer_conversions.cc 
   ${TFLITE_SOURCE_DIR}/core/api/op_resolver.cc 
@@ -109,7 +98,6 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/simple_memory_allocator.cc 
   ${TFLM_SOURCE_DIR}/kernels/activations.cc 
   ${TFLM_SOURCE_DIR}/kernels/add_n.cc 
-  ${TFLM_SOURCE_DIR}/kernels/add.cc 
   ${TFLM_SOURCE_DIR}/kernels/arg_min_max.cc 
   ${TFLM_SOURCE_DIR}/kernels/batch_to_space_nd.cc 
   ${TFLM_SOURCE_DIR}/kernels/cast.cc 
@@ -118,10 +106,8 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/kernels/comparisons.cc 
   ${TFLM_SOURCE_DIR}/kernels/concatenation.cc 
   ${TFLM_SOURCE_DIR}/kernels/conv_common.cc 
-  ${TFLM_SOURCE_DIR}/kernels/conv.cc 
   ${TFLM_SOURCE_DIR}/kernels/cumsum.cc 
   ${TFLM_SOURCE_DIR}/kernels/depth_to_space.cc 
-  ${TFLM_SOURCE_DIR}/kernels/depthwise_conv.cc 
   ${TFLM_SOURCE_DIR}/kernels/depthwise_conv_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/dequantize.cc 
   ${TFLM_SOURCE_DIR}/kernels/detection_postprocess.cc 
@@ -134,7 +120,6 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/kernels/floor_div.cc 
   ${TFLM_SOURCE_DIR}/kernels/floor_mod.cc 
   ${TFLM_SOURCE_DIR}/kernels/floor.cc 
-  ${TFLM_SOURCE_DIR}/kernels/fully_connected.cc 
   ${TFLM_SOURCE_DIR}/kernels/fully_connected_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/gather_nd.cc 
   ${TFLM_SOURCE_DIR}/kernels/gather.cc 
@@ -148,11 +133,9 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/kernels/logical.cc 
   ${TFLM_SOURCE_DIR}/kernels/logistic.cc 
   ${TFLM_SOURCE_DIR}/kernels/maximum_minimum.cc 
-  ${TFLM_SOURCE_DIR}/kernels/mul.cc 
   ${TFLM_SOURCE_DIR}/kernels/neg.cc 
   ${TFLM_SOURCE_DIR}/kernels/pack.cc 
   ${TFLM_SOURCE_DIR}/kernels/pad.cc 
-  ${TFLM_SOURCE_DIR}/kernels/pooling.cc 
   ${TFLM_SOURCE_DIR}/kernels/prelu.cc 
   ${TFLM_SOURCE_DIR}/kernels/quantize_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/quantize.cc 
@@ -163,7 +146,6 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/kernels/round.cc 
   ${TFLM_SOURCE_DIR}/kernels/shape.cc 
   ${TFLM_SOURCE_DIR}/kernels/softmax_common.cc 
-  ${TFLM_SOURCE_DIR}/kernels/softmax.cc 
   ${TFLM_SOURCE_DIR}/kernels/space_to_batch_nd.cc 
   ${TFLM_SOURCE_DIR}/kernels/split_v.cc 
   ${TFLM_SOURCE_DIR}/kernels/split.cc 
@@ -178,8 +160,59 @@ PRIVATE
   ${TFLM_SOURCE_DIR}/kernels/unpack.cc 
   ${TFLM_SOURCE_DIR}/kernels/zeros_like.cc
 )
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "armv6")
+
+file(GLOB_RECURSE cmsis_nn_sources ${TFLM_SOURCE_DIR}/tools/make/downloads/cmsis/CMSIS/NN/Source/*.c)
+
+list(APPEND TFLITE_TARGET_PUBLIC_SOURCES
+  ${cmsis_nn_sources}
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/add.cc 
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/conv.cc 
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/depthwise_conv.cc
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/fully_connected.cc 
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/mul.cc 
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/pooling.cc 
+  ${TFLM_SOURCE_DIR}/kernels/cmsis_nn/softmax.cc 
+)
+
+
+list(APPEND TFLITE_TARGET_PRIVATE_INCLUDES
+  ${TFLM_SOURCE_DIR}/tools/make/downloads/cmsis/CMSIS/NN/Include
+  ${TFLM_SOURCE_DIR}/tools/make/downloads/cmsis/CMSIS/DSP/Include
+  ${TFLM_SOURCE_DIR}/tools/make/downloads/cmsis/CMSIS/Core/Include
+  ${TFLM_SOURCE_DIR}/tools/make/downloads/cmsis
+)
+
+list(APPEND TFLITE_TARGET_PRIVATE_DEFINITIONS
+  CMSIS_NN
+)
+
+else()
+
+list(APPEND TFLITE_TARGET_PUBLIC_SOURCES
+  ${TFLM_SOURCE_DIR}/kernels/add.cc 
+  ${TFLM_SOURCE_DIR}/kernels/conv.cc 
+  ${TFLM_SOURCE_DIR}/kernels/depthwise_conv.cc
+  ${TFLM_SOURCE_DIR}/kernels/fully_connected.cc 
+  ${TFLM_SOURCE_DIR}/kernels/mul.cc 
+  ${TFLM_SOURCE_DIR}/kernels/pooling.cc 
+  ${TFLM_SOURCE_DIR}/kernels/softmax.cc 
+)
+
+endif()
+
+target_sources(tensorflow-lite-micro
+PRIVATE
+  ${TFLITE_TARGET_PUBLIC_SOURCES}
+)
+
+
+
 target_include_directories(tensorflow-lite-micro
-  PUBLIC
+PRIVATE 
+  ${TFLITE_TARGET_PRIVATE_INCLUDES}
+PUBLIC
     ${TENSORFLOW_SOURCE_DIR}
     ${TFLM_SOURCE_DIR}/tools/make/downloads/gemmlowp
     ${TFLM_SOURCE_DIR}/tools/make/downloads/ruy
@@ -192,6 +225,11 @@ target_link_libraries(tensorflow-lite-micro
 target_compile_options(tensorflow-lite-micro
   PUBLIC ${TFLITE_TARGET_PUBLIC_OPTIONS}
   PRIVATE ${TFLITE_TARGET_PRIVATE_OPTIONS}
+)
+
+target_compile_definitions(tensorflow-lite-micro
+PRIVATE 
+  ${TFLITE_TARGET_PRIVATE_DEFINITIONS}
 )
 
 
