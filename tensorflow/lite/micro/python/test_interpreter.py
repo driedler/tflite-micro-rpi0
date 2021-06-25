@@ -14,7 +14,7 @@ try:
 except:
     from interpreter import Interpreter
 
-model_path = f'{curdir}/interpreter_wrapper/vww_96_int8.tflite'
+model_path = f'{curdir}/test_data/vww_96_int8.tflite'
 
 interp = Interpreter(model_path)
 interp.allocate_tensors()

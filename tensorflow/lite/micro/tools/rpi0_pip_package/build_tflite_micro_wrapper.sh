@@ -13,4 +13,4 @@ BUILD_DIR=${1:-$ROOT_DIR/build}
 PYTHON=${2:-python3.7}
 
 cmake -DCMAKE_TOOLCHAIN_FILE=$TFLITE_DIR/tools/cmake/rpi0_toolchain.cmake -DPYTHON=${PYTHON} -S $ROOT_DIR -B $BUILD_DIR 
-cmake --build $BUILD_DIR --target _pywrap_tensorflow_interpreter_wrapper -- -j8
+cmake --build $BUILD_DIR --config Release --target _pywrap_tflm_interpreter_wrapper -j8

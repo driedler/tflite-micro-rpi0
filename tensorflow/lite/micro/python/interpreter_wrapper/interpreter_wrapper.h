@@ -41,15 +41,15 @@ namespace interpreter_wrapper {
 
 class PythonErrorReporter;
 
-class InterpreterWrapper {
+class MicroInterpreterWrapper {
  public:
   using Model = FlatBufferModel;
 
   // SWIG caller takes ownership of pointer.
-  static InterpreterWrapper* CreateWrapperCPPFromFile(
+  static MicroInterpreterWrapper* CreateWrapperCPPFromFile(
       const char* model_path, size_t tensor_arena_size, std::string* error_msg);
 
-  ~InterpreterWrapper();
+  ~MicroInterpreterWrapper();
   PyObject* AllocateTensors();
   PyObject* Invoke();
 
@@ -80,18 +80,18 @@ class InterpreterWrapper {
 
  private:
 
-  InterpreterWrapper(std::unique_ptr<Model> model,
+  MicroInterpreterWrapper(std::unique_ptr<Model> model,
                      std::unique_ptr<PythonErrorReporter> error_reporter,
                      MicroInterpreter *interpreter, 
                      AllOpsResolver* resolver,
                      uint8_t* tensor_arena);
 
-  // InterpreterWrapper is not copyable or assignable. 
-  InterpreterWrapper() = delete;
-  InterpreterWrapper(const InterpreterWrapper& rhs) = delete;
+  // MicroInterpreterWrapper is not copyable or assignable. 
+  MicroInterpreterWrapper() = delete;
+  MicroInterpreterWrapper(const MicroInterpreterWrapper& rhs) = delete;
 
 
-  // The public functions which creates `InterpreterWrapper` should ensure all
+  // The public functions which creates `MicroInterpreterWrapper` should ensure all
   // these member variables are initialized successfully. Otherwise it should
   // report the error and return `nullptr`.
   MicroInterpreter* interpreter_;

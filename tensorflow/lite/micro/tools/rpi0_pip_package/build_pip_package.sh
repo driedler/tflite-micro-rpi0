@@ -35,7 +35,7 @@ cp -r "${SCRIPT_DIR}/setup_with_binary.py" \
       "${BUILD_DIR}"
 cp "${TFLM_DIR}/python/interpreter.py" "${BUILD_DIR}/tflite_micro_runtime"
 cp "${TFLM_DIR}/python/image_transform.py" "${BUILD_DIR}/tflite_micro_runtime"
-cp "${TFLM_DIR}/python/__init__.py" "${BUILD_DIR}/tflite_micro_runtime"
+#cp "${TFLM_DIR}/python/__init__.py" "${BUILD_DIR}/tflite_micro_runtime"
 
 echo "__version__ = '${PACKAGE_VERSION}'" >> "${BUILD_DIR}/tflite_micro_runtime/__init__.py"
 echo "__git_version__ = '$GIT_HASH'" >> "${BUILD_DIR}/tflite_micro_runtime/__init__.py"
@@ -47,12 +47,12 @@ $SCRIPT_DIR/build_tflite_micro_wrapper.sh "${BUILD_DIR}/cmake_build" $PYTHON
 LIBRARY_EXTENSION=.so
 
 
-cp "${BUILD_DIR}/cmake_build/_pywrap_tensorflow_interpreter_wrapper${LIBRARY_EXTENSION}" \
+cp "${BUILD_DIR}/cmake_build/_pywrap_tflm_interpreter_wrapper${LIBRARY_EXTENSION}" \
    "${BUILD_DIR}/tflite_micro_runtime"
 # Bazel generates the wrapper library with r-x permissions for user.
 # At least on Windows, we need write permissions to delete the file.
 # Without this, setuptools fails to clean the build directory.
-chmod u+w "${BUILD_DIR}/tflite_micro_runtime/_pywrap_tensorflow_interpreter_wrapper${LIBRARY_EXTENSION}"
+chmod u+w "${BUILD_DIR}/tflite_micro_runtime/_pywrap_tflm_interpreter_wrapper${LIBRARY_EXTENSION}"
 
 # Build python wheel.
 pushd "${BUILD_DIR}"

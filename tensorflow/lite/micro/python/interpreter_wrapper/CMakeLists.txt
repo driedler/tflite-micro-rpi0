@@ -16,8 +16,8 @@ message(STATUS "NUMPY_INCLUDE=${NUMPY_INCLUDE}")
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../../../experimental/image_transform ${CMAKE_CURRENT_BINARY_DIR}/image_transform)
 
 
-add_library(_pywrap_tensorflow_interpreter_wrapper SHARED EXCLUDE_FROM_ALL)
-target_sources(_pywrap_tensorflow_interpreter_wrapper
+add_library(_pywrap_tflm_interpreter_wrapper SHARED EXCLUDE_FROM_ALL)
+target_sources(_pywrap_tflm_interpreter_wrapper
 PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/interpreter_wrapper.cc
   ${CMAKE_CURRENT_LIST_DIR}/interpreter_wrapper_pybind11.cc
@@ -30,9 +30,9 @@ PUBLIC
 )
 
 # # To remove "lib" prefix.
-set_target_properties(_pywrap_tensorflow_interpreter_wrapper PROPERTIES PREFIX "")
+set_target_properties(_pywrap_tflm_interpreter_wrapper PROPERTIES PREFIX "")
 
-target_include_directories(_pywrap_tensorflow_interpreter_wrapper
+target_include_directories(_pywrap_tflm_interpreter_wrapper
   PUBLIC
     ${TENSORFLOW_SOURCE_DIR}
     ${PYTHON_INCLUDE}
@@ -40,7 +40,7 @@ target_include_directories(_pywrap_tensorflow_interpreter_wrapper
     ${NUMPY_INCLUDE}
 )
 
-target_link_libraries(_pywrap_tensorflow_interpreter_wrapper
+target_link_libraries(_pywrap_tflm_interpreter_wrapper
 PUBLIC
   tensorflow-lite-micro
   image_transform

@@ -7,3 +7,4 @@ rpi-toolchain.tar.gz
 /build
 /.venv
 __pycache__
+*.whl

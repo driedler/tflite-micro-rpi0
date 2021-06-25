@@ -1,45 +1,50 @@
-<!--ts-->
-   * [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
-   * [Build Status](#build-status)
-      * [Official Builds](#official-builds)
-      * [Community Supported Builds](#community-supported-builds)
-   * [Additional Documentation](#additional-documentation)
+tflite_micro_runtime
+========================
 
-<!-- Added by: advaitjain, at: Thu 29 Apr 2021 12:53:08 PM PDT -->
+This allows for running TF-Lite models on a RaspberryPi Zero using the Tensorflow-Lite Micro (TFLM) interpreter.  
 
-<!--te-->
+This provides the Python package:`tflite_micro_runtime` which uses the same API as `tflite_runtime`. 
+The main difference is `tflite_micro_runtime` uses the Tensorflow-Lite Micro interpreter instead of the 
+Tensorflow-Lite interpreter.
 
-# TensorFlow Lite for Microcontrollers
-
-The TFLM code is currently in the process of being refactored out of the
-[Tensorflow github
-repository](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro)
-into a standalone repo. This refactoring is currently in the initial stages and
-is expected to be completed towards the end of June 2021.
-
-# Contributing
-See our [contribution documentation](CONTRIBUTING.md).
-
-# Build Status
-
- * [GitHub Status](https://www.githubstatus.com/)
-
-## Official Builds
-
-Build Type       |    Status     |
------------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml?query=event%3Aschedule) |
-Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
-
-## Community Supported Builds
-Build Type      |    Status     |
------------     | --------------|
-Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
-Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
-Sparkfun Edge   | [![Sparkfun Edge](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml) |
-Xtensa     | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml?query=event%3Aschedule) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
+Using the Tensorflow-Lite Micro interpeter provides __~8x improvement__ on inference time.
 
 
-# Additional Documentation
+More details on the `tflite_runtime` Python package here:  
+https://www.tensorflow.org/lite/guide/python
 
- * [Continuous Integration](docs/continuous_integration.md)
+
+More details on the Tensorflow-Lite Micro interpreter here:  
+https://github.com/tensorflow/tflite-micro
+
+__NOTE:__ This repo is a fork of the `tflite-micro` repo.
+
+
+
+# Install
+
+To install the `tflite_micro_runtime` Python package, run the PIP command on the RPI0:
+
+```bash
+pip3 install https://github.com/driedler/tflite-micro-rpi0/releases/download/1.0.0/tflite_micro_runtime-1.0.0-cp37-cp37m-linux_armv6l.whl
+```
+
+# Build
+
+To build the `tflite_micro_runtime` Python package, run the bash scripts in a Linux environment:
+
+```bash
+# Install Python3.7, numpy, and pybind11
+./tensorflow/lite/micro/tools/rpi0_pip_package/install_python.sh
+
+# Build tflite_micro_runtime wheel
+./tensorflow/lite/micro/tools/rpi0_pip_package/build_pip_package.sh
+```
+
+
+# Runtime Comparison Script
+
+A runtime comparsion script is available the compares the `tflite_micro_runtime` and `tflite_runtime` 
+packages at: [./tensorflow/lite/micro/python/runtime_comparison.py](./tensorflow/lite/micro/python/runtime_comparison.py)
+
+Refer to the comments at the top of the script for more details.

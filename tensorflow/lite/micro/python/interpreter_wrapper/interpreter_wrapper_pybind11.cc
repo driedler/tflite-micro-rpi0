@@ -22,12 +22,12 @@ limitations under the License.
 #include "tensorflow/lite/micro/python/interpreter_wrapper/pybind11_lib.h"
 
 namespace py = pybind11;
-using tflite::interpreter_wrapper::InterpreterWrapper;
+using tflite::interpreter_wrapper::MicroInterpreterWrapper;
 
 
-PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
+PYBIND11_MODULE(_pywrap_tflm_interpreter_wrapper, m) {
   m.doc() = R"pbdoc(
-    _pywrap_tensorflow_interpreter_wrapper
+    _pywrap_tflm_interpreter_wrapper
     -----
   )pbdoc";
 
@@ -37,7 +37,7 @@ PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
   m.def("CreateWrapperFromFile",
         [](const std::string& model_path, int tensor_arena_size) {
           std::string error;
-          auto* wrapper = ::InterpreterWrapper::CreateWrapperCPPFromFile(
+          auto* wrapper = ::MicroInterpreterWrapper::CreateWrapperCPPFromFile(
               model_path.c_str(), tensor_arena_size, &error);
           if (!wrapper) {
             throw std::invalid_argument(error);
@@ -45,36 +45,36 @@ PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
           return wrapper;
         });
       
-  py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
+  py::class_<MicroInterpreterWrapper>(m, "MicroInterpreterWrapper")
       .def("AllocateTensors",
-           [](InterpreterWrapper& self) {
+           [](MicroInterpreterWrapper& self) {
              return tensorflow::PyoOrThrow(self.AllocateTensors());
            })
       .def("Invoke",
-           [](InterpreterWrapper& self) {
+           [](MicroInterpreterWrapper& self) {
              return tensorflow::PyoOrThrow(self.Invoke());
            })
       .def("InputIndices",
-           [](const InterpreterWrapper& self) {
+           [](const MicroInterpreterWrapper& self) {
              return tensorflow::PyoOrThrow(self.InputIndices());
            })
       .def("OutputIndices",
-           [](InterpreterWrapper& self) {
+           [](MicroInterpreterWrapper& self) {
              return tensorflow::PyoOrThrow(self.OutputIndices());
            })
-      .def("NumTensors", &InterpreterWrapper::NumTensors)
-      .def("TensorName", &InterpreterWrapper::TensorName)
+      .def("NumTensors", &MicroInterpreterWrapper::NumTensors)
+      .def("TensorName", &MicroInterpreterWrapper::TensorName)
       .def("TensorType",
-           [](const InterpreterWrapper& self, int i) {
+           [](const MicroInterpreterWrapper& self, int i) {
              return tensorflow::PyoOrThrow(self.TensorType(i));
            })
       .def("TensorSize",
-           [](const InterpreterWrapper& self, int i) {
+           [](const MicroInterpreterWrapper& self, int i) {
              return tensorflow::PyoOrThrow(self.TensorSize(i));
            })
       .def(
           "TensorQuantization",
-          [](const InterpreterWrapper& self, int i) {
+          [](const MicroInterpreterWrapper& self, int i) {
             return tensorflow::PyoOrThrow(self.TensorQuantization(i));
           },
           R"pbdoc(
@@ -82,31 +82,31 @@ PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
           )pbdoc")
       .def(
           "TensorQuantizationParameters",
-          [](InterpreterWrapper& self, int i) {
+          [](MicroInterpreterWrapper& self, int i) {
             return tensorflow::PyoOrThrow(self.TensorQuantizationParameters(i));
           })
       .def("SetTensor",
-           [](InterpreterWrapper& self, int i, py::handle& value) {
+           [](MicroInterpreterWrapper& self, int i, py::handle& value) {
              return tensorflow::PyoOrThrow(self.SetTensor(i, value.ptr()));
            })
       .def("GetTensor",
-           [](const InterpreterWrapper& self, int i) {
+           [](const MicroInterpreterWrapper& self, int i) {
              return tensorflow::PyoOrThrow(self.GetTensor(i));
            })
       .def("ResetVariableTensors",
-           [](InterpreterWrapper& self) {
+           [](MicroInterpreterWrapper& self) {
              return tensorflow::PyoOrThrow(self.ResetVariableTensors());
            })
       .def(
           "tensor",
-          [](InterpreterWrapper& self, py::handle& base_object, int i) {
+          [](MicroInterpreterWrapper& self, py::handle& base_object, int i) {
             return tensorflow::PyoOrThrow(self.tensor(base_object.ptr(), i));
           },
           R"pbdoc(
             Returns a reference to tensor index i as a numpy array. The
             base_object should be the interpreter object providing the memory.
           )pbdoc")
-      .def("interpreter", [](InterpreterWrapper& self) {
+      .def("interpreter", [](MicroInterpreterWrapper& self) {
         return reinterpret_cast<intptr_t>(self.interpreter());
       });
 

@@ -3,9 +3,9 @@ import numpy as np
 
 
 try:
-  from tflite_micro_runtime import _pywrap_tensorflow_interpreter_wrapper as _interpreter_wrapper
+  from tflite_micro_runtime import _pywrap_tflm_interpreter_wrapper as _interpreter_wrapper
 except:
-  import _pywrap_tensorflow_interpreter_wrapper as _interpreter_wrapper
+  import _pywrap_tflm_interpreter_wrapper as _interpreter_wrapper
 
 
 

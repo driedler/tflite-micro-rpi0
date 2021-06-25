@@ -140,7 +140,7 @@ TfLiteStatus GetSizeOfType(TfLiteContext* context, const TfLiteType type,
 }  // namespace
 
 
-InterpreterWrapper::InterpreterWrapper(std::unique_ptr<Model> model,
+MicroInterpreterWrapper::MicroInterpreterWrapper(std::unique_ptr<Model> model,
                      std::unique_ptr<PythonErrorReporter> error_reporter,
                      MicroInterpreter *interpreter, 
                      AllOpsResolver* resolver,
@@ -151,17 +151,17 @@ InterpreterWrapper::InterpreterWrapper(std::unique_ptr<Model> model,
       interpreter_(interpreter),
       tensor_arena_(tensor_arena) {}
 
-InterpreterWrapper::~InterpreterWrapper() {
+MicroInterpreterWrapper::~MicroInterpreterWrapper() {
   delete interpreter_;
 }
 
-PyObject* InterpreterWrapper::AllocateTensors() {
+PyObject* MicroInterpreterWrapper::AllocateTensors() {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_CHECK(interpreter_->AllocateTensors());
   Py_RETURN_NONE;
 }
 
-PyObject* InterpreterWrapper::Invoke() {
+PyObject* MicroInterpreterWrapper::Invoke() {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
 
   // Release the GIL so that we can run multiple interpreters in parallel
@@ -176,7 +176,7 @@ PyObject* InterpreterWrapper::Invoke() {
   Py_RETURN_NONE;
 }
 
-PyObject* InterpreterWrapper::InputIndices() const {
+PyObject* MicroInterpreterWrapper::InputIndices() const {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   PyObject* np_array = PyArrayFromIntVector(interpreter_->inputs().data(),
                                             interpreter_->inputs().size());
@@ -184,21 +184,21 @@ PyObject* InterpreterWrapper::InputIndices() const {
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-PyObject* InterpreterWrapper::OutputIndices() const {
+PyObject* MicroInterpreterWrapper::OutputIndices() const {
   PyObject* np_array = PyArrayFromIntVector(interpreter_->outputs().data(),
                                             interpreter_->outputs().size());
 
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-int InterpreterWrapper::NumTensors() const {
+int MicroInterpreterWrapper::NumTensors() const {
   if (!interpreter_) {
     return 0;
   }
   return interpreter_->tensors_size();
 }
 
-std::string InterpreterWrapper::TensorName(int i) const {
+std::string MicroInterpreterWrapper::TensorName(int i) const {
   if (!interpreter_ || i >= this->NumTensors() || i < 0) {
     return "";
   }
@@ -207,7 +207,7 @@ std::string InterpreterWrapper::TensorName(int i) const {
   return tensor->name ? tensor->name : "";
 }
 
-PyObject* InterpreterWrapper::TensorType(int i) const {
+PyObject* MicroInterpreterWrapper::TensorType(int i) const {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_TENSOR_BOUNDS_CHECK(i);
 
@@ -225,7 +225,7 @@ PyObject* InterpreterWrapper::TensorType(int i) const {
   return PyArray_TypeObjectFromType(code);
 }
 
-PyObject* InterpreterWrapper::TensorSize(int i) const {
+PyObject* MicroInterpreterWrapper::TensorSize(int i) const {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_TENSOR_BOUNDS_CHECK(i);
 
@@ -240,14 +240,14 @@ PyObject* InterpreterWrapper::TensorSize(int i) const {
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-PyObject* InterpreterWrapper::TensorQuantization(int i) const {
+PyObject* MicroInterpreterWrapper::TensorQuantization(int i) const {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_TENSOR_BOUNDS_CHECK(i);
   const TfLiteTensor* tensor = interpreter_->tensor(i);
   return PyTupleFromQuantizationParam(tensor->params);
 }
 
-PyObject* InterpreterWrapper::TensorQuantizationParameters(int i) const {
+PyObject* MicroInterpreterWrapper::TensorQuantizationParameters(int i) const {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_TENSOR_BOUNDS_CHECK(i);
   const TfLiteTensor* tensor = interpreter_->tensor(i);
@@ -281,7 +281,7 @@ PyObject* InterpreterWrapper::TensorQuantizationParameters(int i) const {
   return result;
 }
 
-PyObject* InterpreterWrapper::SetTensor(int i, PyObject* value) {
+PyObject* MicroInterpreterWrapper::SetTensor(int i, PyObject* value) {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_TENSOR_BOUNDS_CHECK(i);
 
@@ -384,7 +384,7 @@ PyObject* CheckGetTensorArgs(MicroInterpreter* interpreter_, int tensor_index,
 
 }  // namespace
 
-PyObject* InterpreterWrapper::GetTensor(int i) const {
+PyObject* MicroInterpreterWrapper::GetTensor(int i) const {
   // Sanity check accessor
   TfLiteTensor* tensor = nullptr;
   int type_num = 0;
@@ -432,7 +432,7 @@ PyObject* InterpreterWrapper::GetTensor(int i) const {
   }
 }
 
-PyObject* InterpreterWrapper::tensor(PyObject* base_object, int i) {
+PyObject* MicroInterpreterWrapper::tensor(PyObject* base_object, int i) {
   // Sanity check accessor
   TfLiteTensor* tensor = nullptr;
   int type_num = 0;
@@ -452,10 +452,10 @@ PyObject* InterpreterWrapper::tensor(PyObject* base_object, int i) {
   return PyArray_Return(np_array);
 }
 
-InterpreterWrapper* InterpreterWrapper::CreateWrapperCPPFromFile(
+MicroInterpreterWrapper* MicroInterpreterWrapper::CreateWrapperCPPFromFile(
     const char* model_path, size_t tensor_arena_size, std::string* error_msg) {
   std::unique_ptr<PythonErrorReporter> error_reporter(new PythonErrorReporter);
-  std::unique_ptr<InterpreterWrapper::Model> model =
+  std::unique_ptr<MicroInterpreterWrapper::Model> model =
       Model::BuildFromFile(model_path, error_reporter.get());
   if(tensor_arena_size == 0 || tensor_arena_size > 64*1024*1024) {
     *error_msg = "Invalid tensor_arena_size";
@@ -479,7 +479,7 @@ InterpreterWrapper* InterpreterWrapper::CreateWrapperCPPFromFile(
     error_reporter.get()
   );
 
-  auto wrapper = new InterpreterWrapper(
+  auto wrapper = new MicroInterpreterWrapper(
     std::move(model), std::move(error_reporter),
     interpreter, resolver, tensor_arena);
  
@@ -487,7 +487,7 @@ InterpreterWrapper* InterpreterWrapper::CreateWrapperCPPFromFile(
 }
 
 
-PyObject* InterpreterWrapper::ResetVariableTensors() {
+PyObject* MicroInterpreterWrapper::ResetVariableTensors() {
   TFLITE_PY_ENSURE_VALID_INTERPRETER();
   TFLITE_PY_CHECK(interpreter_->ResetVariableTensors());
   Py_RETURN_NONE;
