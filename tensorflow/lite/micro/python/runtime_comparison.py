@@ -7,7 +7,7 @@ Before running this script, run the following PIP commands on your RPI0:
 pip3 install https://github.com/driedler/tflite_runtime_rpi0w/releases/download/2.5.0/tflite_runtime-2.5.0-cp37-cp37m-linux_armv6l.whl
 
 # Install tflite_micro_runtime-1.0.0
-pip3 install https://github.com/driedler/tflite-micro-rpi0/releases/download/1.0.0/tflite_micro_runtime-1.0.0-cp37-cp37m-linux_armv6l.whl
+pip3 install https://github.com/driedler/tflite_micro_runtime/releases/download/1.0.0/tflite_micro_runtime-1.0.0-cp37-cp37m-linux_armv6l.whl
 
 
 Then run the script with your model file:
