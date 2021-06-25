@@ -61,14 +61,6 @@ set(FLATBUFFERS_BUILD_FLATHASH OFF)
 set(FLATBUFFERS_LIBCXX_WITH_CLANG OFF)
 add_subdirectory(tools/make/downloads/flatbuffers)
 
-execute_process(COMMAND python3.7 -c "from sysconfig import get_paths as gp; print(gp()['include'])" OUTPUT_VARIABLE PYTHON_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND python3.7 -c "import pybind11; print (pybind11.get_include())" OUTPUT_VARIABLE PYBIND11_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND python3.7 -c "import numpy; print (numpy.get_include())" OUTPUT_VARIABLE NUMPY_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-message(STATUS "PYTHON_INCLUDE=${PYTHON_INCLUDE}")
-message(STATUS "PYBIND11_INCLUDE=${PYBIND11_INCLUDE}")
-message(STATUS "NUMPY_INCLUDE=${NUMPY_INCLUDE}")
-
 
 # TFLite library
 add_library(tensorflow-lite-micro)
@@ -233,34 +225,4 @@ PRIVATE
 )
 
 
-add_library(_pywrap_tensorflow_interpreter_wrapper SHARED EXCLUDE_FROM_ALL)
-target_sources(_pywrap_tensorflow_interpreter_wrapper
-PUBLIC
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/interpreter_wrapper.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/interpreter_wrapper_pybind11.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/numpy.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/allocation.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/model_builder.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/python_error_reporter.cc
-  ${TFLM_SOURCE_DIR}/python/interpreter_wrapper/python_utils.cc
-)
-
-# # To remove "lib" prefix.
-set_target_properties(_pywrap_tensorflow_interpreter_wrapper PROPERTIES PREFIX "")
-
-target_include_directories(_pywrap_tensorflow_interpreter_wrapper
-  PUBLIC
-    ${TENSORFLOW_SOURCE_DIR}
-    ${PYTHON_INCLUDE}
-    ${PYBIND11_INCLUDE}
-    ${NUMPY_INCLUDE}
-)
-
-target_link_libraries(_pywrap_tensorflow_interpreter_wrapper
-PUBLIC
-  tensorflow-lite-micro
-)
-target_compile_options(_pywrap_tensorflow_interpreter_wrapper
-  PUBLIC ${TFLITE_TARGET_PUBLIC_OPTIONS}
-  PRIVATE ${TFLITE_TARGET_PRIVATE_OPTIONS}
-)
+add_subdirectory(python/interpreter_wrapper)

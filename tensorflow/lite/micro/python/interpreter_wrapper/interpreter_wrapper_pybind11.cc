@@ -18,10 +18,12 @@ limitations under the License.
 #include "pybind11/pytypes.h"
 #include "pybind11/stl.h"
 #include "tensorflow/lite/micro/python/interpreter_wrapper/interpreter_wrapper.h"
+#include "tensorflow/lite/micro/python/interpreter_wrapper/image_transform_wrapper.h"
 #include "tensorflow/lite/micro/python/interpreter_wrapper/pybind11_lib.h"
 
 namespace py = pybind11;
 using tflite::interpreter_wrapper::InterpreterWrapper;
+
 
 PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
   m.doc() = R"pbdoc(
@@ -107,4 +109,25 @@ PYBIND11_MODULE(_pywrap_tensorflow_interpreter_wrapper, m) {
       .def("interpreter", [](InterpreterWrapper& self) {
         return reinterpret_cast<intptr_t>(self.interpreter());
       });
+
+
+  m.def("GetPerspectiveTransformMatrix",
+    [](const std::vector<float>& src_points, const std::vector<float>& dst_points) {
+      return tensorflow::PyoOrThrow(tflite::image_transform::GetPerspectiveTransformMatrix(
+        src_points, 
+        dst_points
+      ));
+    }
+  );
+  m.def("ApplyPerspectiveTransform",
+    [](py::handle& img, int dst_width, int dst_height, py::handle& warp, bool standardize) {
+      return tensorflow::PyoOrThrow(tflite::image_transform::ApplyPerspectiveTransform(
+        img.ptr(), 
+        dst_width, 
+        dst_height, 
+        warp.ptr(), 
+        standardize
+    ));
+    }
+  );
 }
