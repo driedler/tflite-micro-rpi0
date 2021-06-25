@@ -1,7 +1,12 @@
 
-execute_process(COMMAND python3.7 -c "from sysconfig import get_paths as gp; print(gp()['include'])" OUTPUT_VARIABLE PYTHON_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND python3.7 -c "import pybind11; print (pybind11.get_include())" OUTPUT_VARIABLE PYBIND11_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND python3.7 -c "import numpy; print (numpy.get_include())" OUTPUT_VARIABLE NUMPY_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(NOT DEFINED PYTHON)
+set(PYTHON python3.7)
+endif()
+
+
+execute_process(COMMAND ${PYTHON} -c "from sysconfig import get_paths as gp; print(gp()['include'])" OUTPUT_VARIABLE PYTHON_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${PYTHON} -c "import pybind11; print (pybind11.get_include())" OUTPUT_VARIABLE PYBIND11_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${PYTHON} -c "import numpy; print (numpy.get_include())" OUTPUT_VARIABLE NUMPY_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 message(STATUS "PYTHON_INCLUDE=${PYTHON_INCLUDE}")
 message(STATUS "PYBIND11_INCLUDE=${PYBIND11_INCLUDE}")
