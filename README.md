@@ -7,12 +7,14 @@ This provides the Python package:`tflite_micro_runtime` which uses the same API 
 The main difference is `tflite_micro_runtime` uses the Tensorflow-Lite Micro interpreter instead of the 
 Tensorflow-Lite interpreter.
 
-Using the Tensorflow-Lite Micro interpeter provides __~8x improvement__ on inference time.
+Using the Tensorflow-Lite Micro (TFLM) interpeter provides __~8x improvement__ on inference time.  
+TFLM provides a speedup because it uses the [ARM CMSIS NN](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) library which is optimized for ARMv6 processor that RPI0 uses.
+The RPI0's ARMv6 processor does not have a GPU or other hardware optimizations so can not leverage any of the features
+that come with the `tflite_runtime` library. Thus the `tflite_micro_runtime` library is faster on the RPI0 but not other Raspberry PIs that do feautre a GPU.
 
 
 More details on the `tflite_runtime` Python package here:  
 https://www.tensorflow.org/lite/guide/python
-
 
 More details on the Tensorflow-Lite Micro interpreter here:  
 https://github.com/tensorflow/tflite-micro
