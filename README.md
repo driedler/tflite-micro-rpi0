@@ -28,7 +28,7 @@ __NOTE:__ This repo is a fork of the `tflite-micro` repo.
 To install the `tflite_micro_runtime` Python package, run the PIP command on the RPI0:
 
 ```bash
-pip3 install https://github.com/driedler/tflite_micro_runtime/releases/download/1.0.0/tflite_micro_runtime-1.0.0-cp37-cp37m-linux_armv6l.whl
+pip3 install https://github.com/driedler/tflite_micro_runtime/releases/download/1.1.0/tflite_micro_runtime-1.1.0-cp37-cp37m-linux_armv6l.whl
 ```
 
 # Build
