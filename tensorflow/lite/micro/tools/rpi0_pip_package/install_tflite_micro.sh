@@ -16,5 +16,6 @@ $TFLM_DIR/tools/make/flatbuffers_download.sh $TFLM_DIR/tools/make/downloads
 $TFLM_DIR/tools/make/ruy_download.sh $TFLM_DIR/tools/make/downloads
 $TFLM_DIR/tools/make/ext_libs/cmsis_download.sh $TFLM_DIR/tools/make/downloads
 
+python3 $SCRIPT_DIR/patch_cmsis.py
 
 

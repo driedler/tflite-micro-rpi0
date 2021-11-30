@@ -21,7 +21,7 @@ TF_DIR=$ROOT_DIR/tensorflow
 TFLITE_DIR=$TF_DIR/lite 
 TFLM_DIR=$TFLITE_DIR/micro
 
-export PACKAGE_VERSION=1.0.0
+export PACKAGE_VERSION=1.1.0
 PYTHON=python3.7
 BUILD_DIR=/tmp/tflite_micro_runtime_build
 GIT_HASH=`git rev-parse HEAD`
