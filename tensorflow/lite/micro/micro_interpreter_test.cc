@@ -22,8 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -51,10 +51,71 @@ class MockProfiler : public MicroProfiler {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+// Some targets does not support dynamic memory (i.e., no malloc or new), thus,
+// the test need to place non-transitent memories in global variables. This is
+// safe because tests are guarateed to run serially.
+tflite::AllOpsResolver g_op_resolver;
+constexpr size_t kAllocatorBufferSize = 1024 * 2;
+uint8_t g_allocator_buffer[kAllocatorBufferSize];
+
+tflite::MicroInterpreter CreateInterpreterWithSimpleMockModel() {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  g_op_resolver = tflite::testing::GetOpResolver();
+
+  tflite::MicroInterpreter interpreter(model, g_op_resolver, g_allocator_buffer,
+                                       kAllocatorBufferSize,
+                                       tflite::GetMicroErrorReporter());
+  return interpreter;
+}
+
+// Test structure for external context payload.
+struct TestExternalContextPayloadData {
+  // Opaque blob
+  uint8_t blob_data[128];
+};
 }  // namespace
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
+
+// Ensures that a regular set and get pair works ok.
+TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  tflite::TestExternalContextPayloadData payload;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          interpreter.SetMicroExternalContext(&payload));
+
+  tflite::TestExternalContextPayloadData* returned_external_context =
+      reinterpret_cast<tflite::TestExternalContextPayloadData*>(
+          interpreter.GetMicroExternalContext());
+
+  // What is returned should be the same as what is set.
+  TF_LITE_MICRO_EXPECT((void*)returned_external_context == (void*)(&payload));
+}
+
+TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  // Return a null if nothing is set before.
+  TF_LITE_MICRO_EXPECT((void*)interpreter.GetMicroExternalContext() ==
+                       (nullptr));
+}
+
+TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  tflite::TestExternalContextPayloadData payload;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          interpreter.SetMicroExternalContext(&payload));
+
+  // Another set should fail.
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          interpreter.SetMicroExternalContext(&payload));
+}
 
 TF_LITE_MICRO_TEST(TestInterpreter) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
@@ -281,7 +342,7 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   tflite::MockProfiler profiler;
   tflite::MicroInterpreter interpreter(
       model, op_resolver, allocator_buffer, allocator_buffer_size,
-      tflite::GetMicroErrorReporter(), &profiler);
+      tflite::GetMicroErrorReporter(), nullptr, &profiler);
 
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_starts(), 0);
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_ends(), 0);
@@ -302,7 +363,24 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  constexpr size_t allocator_buffer_size = 528;
+  // This test is designed to create the following classes/buffers successfully
+  // on the arena:
+  //
+  // From tail: RecordingSimpleMemoryAllocator, RecordingMicroAllocator,
+  //        RecordingMicroAllocator.
+  //
+  // From head:ScratchBufferRequest buffer.
+  //
+  // Since sizes of the above classes vary between architecture, we use sizeof
+  // for whatever is visible from this test file. For those that are not visible
+  // from this test file, we use the upper bound for x86 architecture since it
+  // is not ideal to expose definitions for test only.
+  constexpr size_t max_scratch_buffer_request_size = 192;
+  constexpr size_t max_micro_builtin_data_allocator_size = 16;
+  constexpr size_t allocator_buffer_size =
+      sizeof(tflite::RecordingSimpleMemoryAllocator) +
+      sizeof(tflite::RecordingMicroAllocator) +
+      max_micro_builtin_data_allocator_size + max_scratch_buffer_request_size;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::RecordingMicroAllocator* allocator =
@@ -317,9 +395,10 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   // Interpreter fails because arena is too small:
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      static_cast<size_t>(192),
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes());
+  // The head buffer use cannot exceed the upper bound from x86.
+  TF_LITE_MICRO_EXPECT_LE(
+      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes(),
+      max_scratch_buffer_request_size);
 
   // Ensure allocations are zero (ignore tail since some internal structs are
   // initialized with this space):
@@ -473,6 +552,28 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   }
 
   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MultipleInputs::freed_, true);
+}
+
+TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
+  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 }
 
 TF_LITE_MICRO_TESTS_END

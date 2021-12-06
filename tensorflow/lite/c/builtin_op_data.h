@@ -497,6 +497,23 @@ typedef struct {
   TfLiteType value_dtype;
 } TfLiteHashtableParams;
 
+typedef struct {
+  const char* container;
+  const char* shared_name;
+} TfLiteVarHandleParams;
+
+typedef struct {
+  int seed;
+  int seed2;
+} TfLiteRandomParams;
+
+typedef struct {
+  int num_boundaries;
+  // This points to the memory stored in the model (flatbuffer),
+  // and is not owned.
+  const float* boundaries;
+} TfLiteBucketizeParams;
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

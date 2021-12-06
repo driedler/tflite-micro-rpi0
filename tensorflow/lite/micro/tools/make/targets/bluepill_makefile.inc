@@ -28,7 +28,6 @@ PLATFORM_FLAGS = \
   -mthumb \
   -Wno-vla \
   -Wno-shadow \
-  -Wno-type-limits \
   -fomit-frame-pointer \
   -nostdlib
 
@@ -58,20 +57,26 @@ EXCLUDED_SRCS := \
   $(MAKEFILE_DIR)/downloads/stm32_bare_lib/source/debug_log.c
 MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
 
+# Excludes micro_allocator_test because it calls CreateQuantizedFlatbufferTensor,
+# which use std::vector constructor which then invokes new.
+# Excludes memory_arena_threshold_test because the size difference of some
+# allocator classes between different architectures.
 # TODO(b/158651472): Fix the memory_arena_threshold_test
-# TODO(b/143286954): Figure out why some tests fail and enable once the issues
-# are resolved.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
   tensorflow/lite/micro/micro_allocator_test.cc \
-  tensorflow/lite/micro/memory_helpers_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+# flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder
+# uses dynamic memory.
+EXCLUDED_TESTS += tensorflow/lite/micro/flatbuffer_utils_test.cc
+
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 EXCLUDED_EXAMPLE_TESTS := \
   tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
   tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc
+  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc \
+  $(shell find ../google/ -name Makefile_internal.inc)
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
@@ -79,5 +84,8 @@ TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
 # We are setting this variable to non-zero to allow us to have a custom
 # implementation of `make test` for bluepill
 TARGET_SPECIFIC_MAKE_TEST := 1
+
+TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
+
 test: build
-	$(TEST_SCRIPT) $(BINDIR) $(TEST_PASS_STRING) $(TARGET)
+	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)

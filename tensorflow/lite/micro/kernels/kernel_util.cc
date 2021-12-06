@@ -20,25 +20,49 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
-                                                      size_t size) {
-  return flexbuffers::GetRoot(buffer, size).AsMap();
+namespace {
+
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
 }
 
-int32_t FlexbuffersWrapperAsInt32(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsInt32();
+}  // namespace
+
+// Returns a mutable tensor for a given input index. is_variable must be checked
+// during prepare when the full TfLiteTensor is available.
+TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
+                                      const TfLiteNode* node, int index) {
+  TFLITE_DCHECK(context != nullptr);
+  TFLITE_DCHECK(node != nullptr);
+  const int tensor_index = ValidateTensorIndexing(
+      context, index, node->inputs->size, node->inputs->data);
+
+  if (tensor_index < 0) {
+    return nullptr;
+  }
+
+  return context->GetEvalTensor(context, node->inputs->data[index]);
 }
 
-bool FlexbuffersWrapperAsBool(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsBool();
+// Returns the TfLiteEvalTensor struct for a given input index in a node.
+const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
+                                     const TfLiteNode* node, int index) {
+  return GetMutableEvalInput(context, node, index);
 }
 
-float FlexbuffersWrapperAsFloat(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsFloat();
-}
-
-bool FlexbuffersWrapperIsNull(const flexbuffers::Map& m, const char* key) {
-  return m[key].IsNull();
+// Returns the TfLiteEvalTensor struct for a given output index in a node.
+TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
+                                const TfLiteNode* node, int index) {
+  TFLITE_DCHECK(context != nullptr);
+  TFLITE_DCHECK(node != nullptr);
+  return context->GetEvalTensor(context, node->outputs->data[index]);
 }
 
 bool HaveSameShapes(const TfLiteEvalTensor* input1,
@@ -93,6 +117,15 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
   }
 
   return kTfLiteOk;
+}
+
+// Returns a blob of payload data. The payload is subjected to interpretation by
+// the OP. This is the recommended API for an OP to get an external context. OP
+// should use this instead of directly calling GetExternalContext function in
+// context.
+void* GetExternalContext(TfLiteContext* context) {
+  return reinterpret_cast<void*>(
+      context->GetExternalContext(context, kTfLiteMaxExternalContexts));
 }
 
 }  // namespace micro

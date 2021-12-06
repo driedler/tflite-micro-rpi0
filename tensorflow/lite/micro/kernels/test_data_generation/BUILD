@@ -1,6 +1,5 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
-
 package(
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
@@ -22,13 +21,5 @@ cc_binary(
     ],
     deps = [
         "@flatbuffers",
-    ],
-)
-
-build_test(
-    name = "build_test",
-    targets = [
-        ":generate_circular_buffer_flexbuffers_data",
-        ":generate_detection_postprocess_flexbuffers_data",
     ],
 )

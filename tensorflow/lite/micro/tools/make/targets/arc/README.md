@@ -1,25 +1,28 @@
-# Building TensorFlow Lite for Microcontrollers for Synopsys DesignWare ARC EM/HS Processors
+# Building TensorFlow Lite for Microcontrollers for Synopsys DesignWare ARC VPX and EM/HS Processors
 
 ## Maintainers
 
 *   [dzakhar](https://github.com/dzakhar)
 *   [JaccovG](https://github.com/JaccovG)
+*   [gerbauz](https://github.com/gerbauz)
 
 ## Introduction
 
 This document contains the general information on building and running
-TensorFlow Lite Micro for targets based on the Synopsys ARC EM/HS Processors.
+TensorFlow Lite Micro for targets based on the Synopsys ARC VPX and EM/HS Processors.
 
 ## Table of Contents
 
 -   [Install the Synopsys DesignWare ARC MetaWare Development Toolkit](#install-the-synopsys-designware-arc-metaWare-development-toolkit)
 -   [ARC EM Software Development Platform (ARC EM SDP)](#ARC-EM-Software-Development-Platform-ARC-EM-SDP)
--   [Custom ARC EM or HS Platform](#Custom-ARC-EMHS-Platform)
+-   [Using EmbARC MLI Library 2.0 (experimental feature)](#Using-EmbARC-MLI-Library-2.0-experimental-feature)
+-   [Model Adaptation Tool (experimental feature)](#Model-Adaptation-Tool-experimental-feature)
+-   [Custom ARC EM/HS/VPX Platform](#Custom-ARC-EMHSVPX-Platform)
 
 ## Install the Synopsys DesignWare ARC MetaWare Development Toolkit
 
 The Synopsys DesignWare ARC MetaWare Development Toolkit (MWDT) is required to
-build and run Tensorflow Lite Micro applications for all ARC EM/HS targets.
+build and run Tensorflow Lite Micro applications for all ARC VPX and EM/HS targets.
 
 To license MWDT, please see further details
 [here](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware)
@@ -81,8 +84,9 @@ card instead of using the debugger.
 #### Make Tool
 
 A `'make'` tool is required for both phases of deploying Tensorflow Lite Micro
-applications on ARC EM SDP: 1. Application project generation 2. Working with
-generated application (build and run)
+applications on ARC EM SDP: 
+1. Test binaries generation.
+2. TFLM static library generation.
 
 For the first phase you need an environment and make tool compatible with
 Tensorflow Lite for Micro build system. At the moment of this writing, this
@@ -139,123 +143,82 @@ Board: ARC EM Software Development Platform v1.0
 …
 ```
 
-### Generate Application Project for ARC EM SDP
+### Generate TFLM as Static Library for ARC EM SDP
 
-Before building an example or test application, you need to generate a TFLM
-project for this application from TensorFlow sources and external dependencies.
-To generate it for ARC EM SDP board you need to set `TARGET=arc_emsdp` on the
-make command line. For instance, to build the Person Detect test application,
-use a shell to execute the following command from the root directory of the
-TensorFlow repo:
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library for ARC EM SDP:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile generate_person_detection_test_int8_make_project TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \ 
+TARGET_ARCH=arc \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+microlite
 ```
 
-The application project will be generated into
-*tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc/prj/person_detection_test_int8/make*
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
 
-Info on generating and building example applications for EM SDP
-(*tensorflow/lite/micro/examples*) can be found in the appropriate readme file
-placed in the same directory with the examples. In general, it’s the same
-process which described in this Readme.
+### Example Applications for ARC EM SDP
 
-The
-[embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
-is used by default to speed up execution of some kernels for asymmetrically
-quantized layers. Kernels which use MLI-based implementations are kept in the
-*tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
-benefit from MLI library, the project can be generated without these
-implementations by adding `ARC_TAGS=no_arc_mli` in the command line. This can
-reduce code size when the optimized kernels are not required.
+Example applications can be found on ARC examples repository.
 
-For more options on embARC MLI usage see
-[kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).
+## Using EmbARC MLI Library 2.0 (experimental feature)
 
-### Build the Application
+This section describes how to build TFLM using [embARC MLI Library 2.0](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA). 
 
-You may need to adjust the following commands in order to use the appropriate
-make tool available in your environment (ie: `make` or `gmake`)
+The EmbARC MLI Library 2.0 can be used to build TFLM library and run applications (especially for VPX processors).
 
-1.  Open command shell and change the working directory to the location which
-    contains the generated project, as described in the previous section
+Because of difference in weights layout, TFLM models must be pre-adapted using a Model Adaptation Tool. For native TFLM examples (person detection, micro speech) Model Adaptation Tool is applied automatically when MLI 2.0 is used, so there is no need to run it maually.
 
-2.  Clean previous build artifacts (optional)
+To use the embARC MLI Library 2.0 in all cases (including native examples), you will also need extra dependencies for the Model Adaptation Tool. Please check the [Model Adaptation Tool](#​Model-Adaptation-Tool-experimental-​feature) section for more information.
 
-    make clean
+To build TFLM using the embARC MLI Library 2.0, add the following tag to the command:
+```
+ARC_TAGS=mli20_experimental
+```
+Also, some of configurations may require custom BUILD_LIB. Please, check MLI Library 2.0 [documentation](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA#build-configuration-options) for more details. Following option can be added:
+```
+BUILD_LIB_DIR=<path_to_buildlib>
+```
+Example of command to build TFLM lib for VPX5:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom \
+TCF=<path_to_tcf_file> \
+BUILD_LIB_DIR=vpx5_integer_full \
+ARC_TAGS=mli20_experimental microlite
+```
+## Model Adaptation Tool (experimental feature)
 
-3.  Build application
+Models in TFLM format need to be pre-adapted before being used with MLI 2.0 due to differences in weights' tensor layout in some kernels. Adaptation is done automatically during TFLM project generation, but requires TensorFlow to be installed.
 
-    make app
+To use the Model Adaptation Tool, you need the following tools in addition to common requirments:
+* [Python](https://www.python.org/downloads/) 3.7 or higher
+* [TensorFlow for Python](https://www.tensorflow.org/install/pip) version 2.5 or higher
 
-### Run the Application on the Board Using MetaWare Debugger
-
-In case you do not have access to the MetaWare Debugger or have chosen not to
-install the Digilent drivers, you can skip to the next section.
-
-To run the application from the console, use the following command:
+If you want to use your own model, exported from TensorFlow in **.tflite** or **.cc** format, you will need to adapt it manually using the Model Adaptation Tool from the current folder, using the following command:
 
 ```
-   make run
+python adaptation_tool.py <path_to_input_model_file> \
+<path_to_adapted_model_file>
 ```
 
-If application runs in an infinite loop, type `Ctrl+C` several times to exit the
-debugger.
+## Custom ARC EM/HS/VPX Platform
 
-To run the application in the GUI debugger, use the following command:
+This section describes how to deploy on a Custom ARC VPX or EM/HS platform defined only by a TCF (Tool onfiguration File, created at CPU configuration time) and optional LCF (Linker Command File). In this case, the real hardware is unknown, and applications can be run only in the nSIM simulator included with the MetaWare toolkit.
 
-```
-   make debug
-```
-
-In both cases you will see the application output in the serial terminal.
-
-### Run the Application on the Board from the microSD Card
-
-1.  Use the following command in the same command shell you used for building
-    the application, as described in the previous step
-
-```
-    make flash
-```
-
-1.  Copy the content of the created *./bin* folder into the root of microSD
-    card. Note that the card must be formatted as FAT32 with default cluster
-    size (but less than 32 Kbytes)
-
-2.  Plug in the microSD card into the J11 connector.
-
-3.  Push the RST button. If a red LED is lit beside RST button, push the CFG
-    button.
-
-4.  Using serial terminal, create uboot environment file to automatically run
-    the application on start-up. Type or copy next sequence of commands into
-    serial terminal one-by-another:
-
-```
-   setenv loadaddr 0x10800000
-   setenv bootfile app.elf
-   setenv bootdelay 1
-   setenv bootcmd fatload mmc 0 \$\{loadaddr\} \$\{bootfile\} \&\& bootelf
-   saveenv
-```
-
-1.  Reset the board (see step 4 above)
-
-You will see the application output in the serial terminal.
-
-## Custom ARC EM/HS Platform
-
-This section describes how to deploy on a Custom ARC EM/HS platform defined only
-by a TCF (Tool Configuration File, created at CPU configuration time) and
-optional LCF (Linker Command File). In this case, the real hardware is unknown,
-and applications can be run only in the nSIM simulator included with the
-MetaWare toolkit
+VPX support is presented as an experimental feature of supporting embARC MLI Library version 2.0 and model adaptation. Read more about embARC MLI Library 2.0 support in the [related section](#Using-EmbARC-MLI-Library-2.0-experimental-feature).
 
 ### Initial Setup
 
-To with custom ARC EM/HS platform, you need the following : * Synopsys MetaWare
-Development Toolkit version 2019.12 or higher * Make tool (make or gmake)
+To use a custom ARC EM/HS/VPX platform, you need the following : 
+* Synopsys MetaWare
+Development Toolkit version 2019.12 or higher (2021.06 or higher for MLI Library 2.0) 
+* Make tool (make or gmake)
+* CMake 3.18 or higher\
+If you are using the [Model Adaptation Tool](#Model-Adaptation-Tool-experimental-feature), you will also need to install:
+* [Python](https://www.python.org/downloads/) 3.7 or higher
+* [TensorFlow for Python](https://www.tensorflow.org/install/pip) version 2.5 or higher
 
 See
 [Install the Synopsys DesignWare ARC MetaWare Development Toolkit](#install-the-synopsys-designware-arc-metaWare-development-toolkit)
@@ -264,73 +227,39 @@ section for instructions on toolchain installation. See
 [Make Tool](#Make-Tool) sections for instructions on toolchain installation and
 comments about make versions.
 
-### Generate Application Project
+### Generate TFLM as Static Library
 
-Before building the application itself, you need to generate the project for
-this application from TensorFlow sources and external dependencies. To generate
-it for a custom TCF you need to set the following variables in the make command
-line: * TARGET=arc_custom * TCF_FILE=<path to TCF file> * (optional)
-LCF_FILE=<path to LCF file>
-
-If you don’t supply an external LCF, the one embedded in the TCF will be used
-instead
-
-For instance, to build **Person Detection** test application, use the following
-command from the root directory of the TensorFlow repo:
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile generate_person_detection_test_int8_make_project TARGET=arc_custom OPTIMIZED_KERNEL_DIR=arc_mli TCF_FILE=<path_to_tcf_file> LCF_FILE=<path_to_lcf_file>
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+microlite
+```
+For MLI Library 2.0 (experimental feature):
+```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+ARC_TAGS=mli20_experimental \
+BUILD_LIB_DIR=<path_to_buildlib> \
+TCF_FILE=<path_to_tcf_file> \
+microlite
 ```
 
-The application project will be generated into
-*tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_arc/prj/person_detection_test_int8/make*
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
 
-The
-[embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
-is used by default to speed up execution of some kernels for asymmetrically
-quantized layers. Kernels which use MLI-based implementations are kept in the
-*tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
-benefit from MLI library, the project can be generated without these
-implementations by adding `ARC_TAGS=no_arc_mli` in the command line. This can
-reduce code size when the optimized kernels are not required.
+### Example Applications for ARC EM/HS/VPX custom configuration.
 
-For more options on embARC MLI usage see
-[kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).
-
-### Build the Application
-
-You may need to adjust the following commands in order to use the appropriate
-make tool available in your environment (ie: `make` or `gmake`)
-
-1.  Open command shell and change the working directory to the location which
-    contains the generated project, as described in the previous section
-
-2.  Clean previous build artifacts (optional)
-
-    make clean
-
-3.  Build application
-
-    make app
-
-### Run the Application with MetaWare Debugger on the nSim Simulator.
-
-To run application from the console, use the following command:
-
-```
-   make run
-```
-
-If application runs in an infinite loop, type `Ctrl+C` several times to exit the
-debugger.
-
-To run the application in the GUI debugger, use the following command:
-
-```
-   make debug
-```
-
-You will see the application output in the same console where you ran it.
+Example applications can be found on ARC examples repository.
 
 ## License
 
