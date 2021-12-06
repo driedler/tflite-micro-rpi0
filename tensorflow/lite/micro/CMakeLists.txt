@@ -130,6 +130,7 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/kernels/l2_pool_2d.cc 
   ${TFLM_SOURCE_DIR}/kernels/l2norm.cc 
   ${TFLM_SOURCE_DIR}/kernels/leaky_relu.cc 
+  ${TFLM_SOURCE_DIR}/kernels/leaky_relu_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/log_softmax.cc 
   ${TFLM_SOURCE_DIR}/kernels/logical.cc 
   ${TFLM_SOURCE_DIR}/kernels/logical_common.cc 
