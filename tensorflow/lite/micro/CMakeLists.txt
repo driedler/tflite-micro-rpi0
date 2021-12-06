@@ -77,11 +77,13 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/all_ops_resolver.cc 
   ${TFLM_SOURCE_DIR}/debug_log.cc 
   ${TFLM_SOURCE_DIR}/memory_helpers.cc 
+  ${TFLM_SOURCE_DIR}/flatbuffer_utils.cc 
   ${TFLM_SOURCE_DIR}/micro_allocator.cc 
   ${TFLM_SOURCE_DIR}/micro_error_reporter.cc 
   ${TFLM_SOURCE_DIR}/micro_graph.cc 
   ${TFLM_SOURCE_DIR}/micro_interpreter.cc 
   ${TFLM_SOURCE_DIR}/micro_profiler.cc 
+  ${TFLM_SOURCE_DIR}/micro_resource_variable.cc
   ${TFLM_SOURCE_DIR}/micro_string.cc 
   ${TFLM_SOURCE_DIR}/micro_time.cc 
   ${TFLM_SOURCE_DIR}/micro_utils.cc 
@@ -89,12 +91,17 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/memory_planner/linear_memory_planner.cc
   ${TFLM_SOURCE_DIR}/simple_memory_allocator.cc 
   ${TFLM_SOURCE_DIR}/kernels/activations.cc 
+  ${TFLM_SOURCE_DIR}/kernels/activations_common.cc 
+  ${TFLM_SOURCE_DIR}/kernels/add_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/add_n.cc 
   ${TFLM_SOURCE_DIR}/kernels/arg_min_max.cc 
+  ${TFLM_SOURCE_DIR}/kernels/assign_variable.cc 
   ${TFLM_SOURCE_DIR}/kernels/batch_to_space_nd.cc 
+  ${TFLM_SOURCE_DIR}/kernels/call_once.cc 
   ${TFLM_SOURCE_DIR}/kernels/cast.cc 
   ${TFLM_SOURCE_DIR}/kernels/ceil.cc
   ${TFLM_SOURCE_DIR}/kernels/circular_buffer.cc 
+  ${TFLM_SOURCE_DIR}/kernels/circular_buffer_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/comparisons.cc 
   ${TFLM_SOURCE_DIR}/kernels/concatenation.cc 
   ${TFLM_SOURCE_DIR}/kernels/conv_common.cc 
@@ -102,6 +109,7 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/kernels/depth_to_space.cc 
   ${TFLM_SOURCE_DIR}/kernels/depthwise_conv_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/dequantize.cc 
+  ${TFLM_SOURCE_DIR}/kernels/dequantize_common.cc
   ${TFLM_SOURCE_DIR}/kernels/detection_postprocess.cc 
   ${TFLM_SOURCE_DIR}/kernels/elementwise.cc 
   ${TFLM_SOURCE_DIR}/kernels/elu.cc 
@@ -116,6 +124,7 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/kernels/gather_nd.cc 
   ${TFLM_SOURCE_DIR}/kernels/gather.cc 
   ${TFLM_SOURCE_DIR}/kernels/hard_swish.cc 
+  ${TFLM_SOURCE_DIR}/kernels/hard_swish_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/if.cc 
   ${TFLM_SOURCE_DIR}/kernels/kernel_util.cc 
   ${TFLM_SOURCE_DIR}/kernels/l2_pool_2d.cc 
@@ -123,33 +132,43 @@ set(TFLITE_TARGET_PUBLIC_SOURCES
   ${TFLM_SOURCE_DIR}/kernels/leaky_relu.cc 
   ${TFLM_SOURCE_DIR}/kernels/log_softmax.cc 
   ${TFLM_SOURCE_DIR}/kernels/logical.cc 
+  ${TFLM_SOURCE_DIR}/kernels/logical_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/logistic.cc 
+  ${TFLM_SOURCE_DIR}/kernels/logistic_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/maximum_minimum.cc 
+  ${TFLM_SOURCE_DIR}/kernels/mul_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/neg.cc 
   ${TFLM_SOURCE_DIR}/kernels/pack.cc 
   ${TFLM_SOURCE_DIR}/kernels/pad.cc 
   ${TFLM_SOURCE_DIR}/kernels/prelu.cc 
+  ${TFLM_SOURCE_DIR}/kernels/prelu_common.cc 
+  ${TFLM_SOURCE_DIR}/kernels/pooling_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/quantize_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/quantize.cc 
+  ${TFLM_SOURCE_DIR}/kernels/read_variable.cc 
   ${TFLM_SOURCE_DIR}/kernels/reduce.cc 
   ${TFLM_SOURCE_DIR}/kernels/reshape.cc 
   ${TFLM_SOURCE_DIR}/kernels/resize_bilinear.cc 
   ${TFLM_SOURCE_DIR}/kernels/resize_nearest_neighbor.cc 
   ${TFLM_SOURCE_DIR}/kernels/round.cc 
   ${TFLM_SOURCE_DIR}/kernels/shape.cc 
+  ${TFLM_SOURCE_DIR}/kernels/slice.cc
   ${TFLM_SOURCE_DIR}/kernels/softmax_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/space_to_batch_nd.cc 
+  ${TFLM_SOURCE_DIR}/kernels/space_to_depth.cc 
   ${TFLM_SOURCE_DIR}/kernels/split_v.cc 
   ${TFLM_SOURCE_DIR}/kernels/split.cc 
   ${TFLM_SOURCE_DIR}/kernels/squeeze.cc 
   ${TFLM_SOURCE_DIR}/kernels/strided_slice.cc 
   ${TFLM_SOURCE_DIR}/kernels/sub.cc 
+  ${TFLM_SOURCE_DIR}/kernels/sub_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/svdf_common.cc 
   ${TFLM_SOURCE_DIR}/kernels/svdf.cc 
   ${TFLM_SOURCE_DIR}/kernels/tanh.cc 
   ${TFLM_SOURCE_DIR}/kernels/transpose_conv.cc 
   ${TFLM_SOURCE_DIR}/kernels/transpose.cc 
   ${TFLM_SOURCE_DIR}/kernels/unpack.cc 
+  ${TFLM_SOURCE_DIR}/kernels/var_handle.cc 
   ${TFLM_SOURCE_DIR}/kernels/zeros_like.cc
 )
 
