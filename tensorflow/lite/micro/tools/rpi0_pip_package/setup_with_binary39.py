@@ -62,5 +62,5 @@ setup(
     package_dir={'': '.'},
     package_data={'': ['*.so', '*.pyd']},
     install_requires=[
-        'numpy >=1.22,<1.23',  # Higher versions have a compatibility issue.
+        'numpy >=1.19,<1.20',  # Higher versions have a compatibility issue.
     ])
