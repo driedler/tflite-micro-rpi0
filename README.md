@@ -35,12 +35,21 @@ pip3 install https://github.com/driedler/tflite_micro_runtime/releases/download/
 
 To build the `tflite_micro_runtime` Python package, run the bash scripts in a Linux environment:
 
+## Install Python3
 ```bash
 # Install Python3.7, numpy, and pybind11
-./tensorflow/lite/micro/tools/rpi0_pip_package/install_python.sh
+./tensorflow/lite/micro/tools/rpi0_pip_package/install_python37.sh
+# OR Install Python3.9, numpy, and pybind11
+./tensorflow/lite/micro/tools/rpi0_pip_package/install_python39.sh
+```
 
+## Build Python Package
+```bash
 # Build tflite_micro_runtime wheel
-./tensorflow/lite/micro/tools/rpi0_pip_package/build_pip_package.sh
+./tensorflow/lite/micro/tools/rpi0_pip_package/build_pip_package37.sh
+
+# OR Build tflite_micro_runtime wheel
+./tensorflow/lite/micro/tools/rpi0_pip_package/build_pip_package39.sh
 ```
 
 

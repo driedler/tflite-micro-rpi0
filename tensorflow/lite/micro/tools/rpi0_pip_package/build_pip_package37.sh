@@ -31,7 +31,7 @@ $SCRIPT_DIR/install_tflite_micro.sh
 
 # Build source tree.
 rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}/tflite_micro_runtime"
-cp -r "${SCRIPT_DIR}/setup_with_binary.py" \
+cp -r "${SCRIPT_DIR}/setup_with_binary37.py" \
       "${BUILD_DIR}"
 cp "${TFLM_DIR}/python/interpreter.py" "${BUILD_DIR}/tflite_micro_runtime"
 cp "${TFLM_DIR}/python/image_transform.py" "${BUILD_DIR}/tflite_micro_runtime"
@@ -57,7 +57,7 @@ chmod u+w "${BUILD_DIR}/tflite_micro_runtime/_pywrap_tflm_interpreter_wrapper${L
 # Build python wheel.
 pushd "${BUILD_DIR}"
 
-${PYTHON} setup_with_binary.py bdist --plat-name=linux_armv6l \
+${PYTHON} setup_with_binary37.py bdist --plat-name=linux_armv6l \
           bdist_wheel --plat-name=linux-armv6l
 WHEEL_PATH=`find ${BUILD_DIR}/dist/ -name *.whl`
 cp $WHEEL_PATH $ROOT_DIR
